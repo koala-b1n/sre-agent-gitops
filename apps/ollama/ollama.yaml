@@ -3,6 +3,19 @@ kind: Namespace
 metadata:
   name: ai-services
 ---
+# 持久卷声明，用来存 Ollama 模型
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models
+  namespace: ai-services
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,6 +34,13 @@ spec:
         image: ollama/ollama:latest
         ports:
         - containerPort: 11434
+        volumeMounts:
+        - name: models-volume
+          mountPath: /root/.ollama
+      volumes:
+      - name: models-volume
+        persistentVolumeClaim:
+          claimName: ollama-models
 ---
 apiVersion: v1
 kind: Service
